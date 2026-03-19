@@ -13,6 +13,7 @@ A Nuxt 3 application for discovering and connecting with fitness coaches. Browse
 - **SSR Support** - Server-side rendering for better performance and SEO
 
 ### Specialties
+
 Powerlifting, Bodybuilding, Fitness, Yoga, Strength, Nutrition
 
 ## Tech Stack
@@ -92,8 +93,3 @@ fitness-coach-finder/
 - **Client plugins** - Auth initialization runs only on client
 - **Route middleware** - Auth protection without manual router guards
 - **Layouts** - Shared layouts with slot content
-
-## Documentation
-
-See `vue3_to_nuxt_comparison.txt` for a detailed comparison between the
-original Vue 3 SPA implementation and this Nuxt 3 SSR version.
