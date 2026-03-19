@@ -1,6 +1,6 @@
 # Fitness Coach Finder
 
-A Vue 3 application for discovering and connecting with fitness coaches. Browse coaches by specialty, view profiles, and send contact requests.
+A Nuxt 3 application for discovering and connecting with fitness coaches. Browse coaches by specialty, view profiles, and send contact requests.
 
 ## Features
 
@@ -10,17 +10,18 @@ A Vue 3 application for discovering and connecting with fitness coaches. Browse 
 - **Coach Registration** - Fitness professionals can register as coaches
 - **Request Management** - View incoming contact requests
 - **User Authentication** - Login/signup system with session persistence
+- **SSR Support** - Server-side rendering for better performance and SEO
 
 ### Specialties
 Powerlifting, Bodybuilding, Fitness, Yoga, Strength, Nutrition
 
 ## Tech Stack
 
-- **Vue 3** with Composition API (`<script setup>`)
+- **Nuxt 3** with Vue 3 Composition API
 - **TypeScript** for type safety
 - **Pinia** for state management
-- **Vue Router** for navigation
-- **Vite** for build tooling
+- **Vue Router** (built-in with file-based routing)
+- **Nitro** server engine
 
 ## Setup
 
@@ -36,6 +37,9 @@ npm run build
 
 # Preview production build
 npm run preview
+
+# Generate static site
+npm run generate
 ```
 
 ## Demo Account
@@ -46,30 +50,50 @@ npm run preview
 ## Project Structure
 
 ```
-src/
-├── components/       # Reusable UI components
-│   ├── coaches/      # Coach-related components
-│   ├── layout/       # Layout components
-│   ├── requests/     # Request-related components
-│   └── ui/           # Base UI components
-├── pages/            # Route pages
-├── stores/           # Pinia stores
-│   ├── auth.ts       # Authentication state
-│   ├── coaches.ts    # Coaches data
-│   └── requests.ts  # Contact requests
-├── router.ts         # Route configuration
-└── main.ts           # App entry point
+fitness-coach-finder/
+├── app.vue               # App entry point
+├── nuxt.config.ts        # Nuxt configuration
+├── layouts/
+│   └── default.vue       # Main layout with header
+├── pages/                # File-based routing
+│   ├── index.vue         # → /
+│   ├── coaches/
+│   │   ├── index.vue     # → /coaches
+│   │   └── [id].vue     # → /coaches/:id
+│   ├── contact/
+│   │   └── [coachId].vue # → /contact/:coachId
+│   ├── auth.vue          # → /auth
+│   ├── register.vue      # → /register
+│   ├── requests.vue      # → /requests
+│   └── [...404].vue      # → 404
+├── components/           # Auto-imported components
+│   ├── coaches/
+│   ├── layout/
+│   ├── requests/
+│   └── ui/
+├── stores/               # Pinia stores
+│   ├── auth.ts
+│   ├── coaches.ts
+│   └── requests.ts
+├── middleware/           # Route middleware
+│   └── auth.ts
+├── plugins/              # Client-only plugins
+│   └── auth.client.ts
+└── assets/
+    └── css/
+        └── main.css      # Global styles
 ```
 
-## Routes
+## Nuxt 3 Features Used
 
-| Path | Description |
-|------|-------------|
-| `/` | Home (redirects to coaches) |
-| `/coaches` | Browse all coaches |
-| `/coaches/:id` | Coach profile |
-| `/contact/:coachId` | Contact coach form |
-| `/register` | Register as coach |
-| `/requests` | View contact requests |
-| `/auth` | Login/Signup |
-| `/*` | 404 Not Found |
+- **File-based routing** - Routes auto-generated from pages directory
+- **Auto-imports** - Components, composables, and stores auto-imported
+- **SSR** - Server-side rendering enabled by default
+- **Client plugins** - Auth initialization runs only on client
+- **Route middleware** - Auth protection without manual router guards
+- **Layouts** - Shared layouts with slot content
+
+## Documentation
+
+See `vue3_to_nuxt_comparison.txt` for a detailed comparison between the
+original Vue 3 SPA implementation and this Nuxt 3 SSR version.

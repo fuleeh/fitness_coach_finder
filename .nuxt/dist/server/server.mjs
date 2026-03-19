@@ -1,0 +1,1 @@
+export { default } from "file:///Users/sfulop/Desktop/Projects/fitness_coach_finder/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs"

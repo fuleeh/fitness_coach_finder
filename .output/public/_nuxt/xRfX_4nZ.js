@@ -1,0 +1,1 @@
+import{I as c,s as n,x as u}from"./CvZaRAOS.js";const h=c("requests",()=>{const e=n([]),o=u(()=>e.value.length>0),a=u(()=>e.value);return{requests:e,hasRequests:o,getRequests:a,getRequestsForCoach:s=>e.value.filter(t=>t.coachId===s),addRequest:async s=>{const t={...s,id:"r"+Date.now()};e.value.push(t)},fetchRequests:async()=>{}}});export{h as u};

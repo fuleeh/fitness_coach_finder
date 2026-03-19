@@ -21,3 +21,4 @@ pnpm-debug.log*
 *.sln
 *.sw?
 design_decisions.txt
+vue3_to_nuxt_comparison.md

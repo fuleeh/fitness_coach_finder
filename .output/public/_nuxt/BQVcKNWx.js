@@ -1,0 +1,1 @@
+import{J as u,l as r,z as a}from"./CvZaRAOS.js";const s=u(t=>{const e=r();if(t.meta.requiresAuth&&!e.isAuthenticated)return a("/auth");if(t.meta.requiresUnauth&&e.isAuthenticated)return a("/coaches")});export{s as default};
