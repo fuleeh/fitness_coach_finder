@@ -1,127 +1,156 @@
-<template>
-  <teleport to="body">
-    <div v-if="show" @click="tryClose" class="backdrop"></div>
-    <transition name="dialog">
-      <dialog open v-if="show">
-        <header>
-          <slot name="header">
-            <h2>{{ title }}</h2>
-          </slot>
-        </header>
-        <section>
-          <slot></slot>
-        </section>
-        <menu v-if="!fixed">
-          <slot name="actions">
-            <base-button @click="tryClose">Close</base-button>
-          </slot>
-        </menu>
-      </dialog>
-    </transition>
-  </teleport>
-</template>
+<script setup lang="ts">
+import { watch, onMounted, onUnmounted } from 'vue'
 
-<script>
-export default {
-  props: {
-    show: {
-      type: Boolean,
-      required: true,
-    },
-    title: {
-      type: String,
-      required: false,
-    },
-    fixed: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-  },
-  emits: ['close'],
-  methods: {
-    tryClose() {
-      if (this.fixed) {
-        return;
-      }
-      this.$emit('close');
-    },
-  },
-};
+interface Props {
+  show: boolean
+  title?: string
+  fixed?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  title: '',
+  fixed: false
+})
+
+const emit = defineEmits<{
+  close: []
+}>()
+
+const handleBackdropClick = (event: MouseEvent) => {
+  if (event.target === event.currentTarget && !props.fixed) {
+    emit('close')
+  }
+}
+
+const handleEscape = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && props.show && !props.fixed) {
+    emit('close')
+  }
+}
+
+watch(() => props.show, (newVal) => {
+  document.body.style.overflow = newVal ? 'hidden' : ''
+})
+
+onMounted(() => {
+  document.addEventListener('keydown', handleEscape)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscape)
+  document.body.style.overflow = ''
+})
 </script>
 
+<template>
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="show" class="dialog-backdrop" @click="handleBackdropClick">
+        <div class="dialog">
+          <header class="dialog__header">
+            <h2>{{ title }}</h2>
+            <button v-if="!fixed" class="dialog__close" @click="emit('close')">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </header>
+          <div class="dialog__content">
+            <slot />
+          </div>
+          <div v-if="$slots.actions || !fixed" class="dialog__actions">
+            <slot name="actions">
+              <BaseButton variant="secondary" @click="emit('close')">Close</BaseButton>
+            </slot>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
 <style scoped>
-.backdrop {
+.dialog-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.75);
-  z-index: 10;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
 }
 
-dialog {
-  position: fixed;
-  top: 20vh;
-  left: 10%;
-  width: 80%;
-  z-index: 100;
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
-  padding: 0;
-  margin: 0;
+.dialog {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 24rem;
+  max-height: 90vh;
   overflow: hidden;
-  background-color: white;
+  display: flex;
+  flex-direction: column;
 }
 
-header {
-  background-color: #3a0061;
-  color: white;
-  width: 100%;
-  padding: 1rem;
+.dialog__header {
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
 }
 
-header h2 {
-  margin: 0;
+.dialog__header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-section {
-  padding: 1rem;
+.dialog__close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
 }
 
-menu {
-  padding: 1rem;
+.dialog__close:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.dialog__content {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dialog__actions {
+  padding: 1rem 1.25rem;
   display: flex;
   justify-content: flex-end;
-  margin: 0;
+  gap: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.dialog-enter-active,
+.dialog-leave-active {
+  transition: all 0.2s ease;
 }
 
 .dialog-enter-from,
 .dialog-leave-to {
   opacity: 0;
-  transform: scale(0.8);
 }
 
-.dialog-enter-active {
-  transition: all 0.3 ease-out;
-}
-
-.dialog-leave-active {
-  transition: all 0.3 ease-in;
-}
-
-.dialog-enter-to,
-.dialog-leave-from {
-  opacity: 1;
-  transform: scale(1);
-}
-
-@media (min-width: 768px) {
-  dialog {
-    left: calc(50% - 20rem);
-    width: 40rem;
-  }
+.dialog-enter-from .dialog,
+.dialog-leave-to .dialog {
+  transform: scale(0.95);
 }
 </style>

@@ -1,96 +1,126 @@
+<script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const authStore = useAuthStore()
+const router = useRouter()
+
+const isLoggedIn = computed(() => authStore.isAuthenticated)
+
+const logout = () => {
+  authStore.logout()
+  router.push('/coaches')
+}
+</script>
+
 <template>
-  <header>
-    <nav>
-      <h1><router-link to="/">Find a Coach</router-link></h1>
-      <ul>
-        <li><router-link to="/coaches">All Coaches</router-link></li>
-        <li v-if="isLoggedIn">
-          <router-link to="/requests">Requests</router-link>
-        </li>
-        <li v-else>
-          <router-link to="/auth">Login</router-link>
-        </li>
-        <li v-if="isLoggedIn">
-          <base-button @click="logout">Logout</base-button>
-        </li>
-      </ul>
-    </nav>
+  <header class="header">
+    <div class="header__container">
+      <router-link to="/" class="header__logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="10" width="5" height="8" rx="1.5" fill="#3b82f6"/>
+          <rect x="8" y="6" width="5" height="16" rx="1.5" fill="#3b82f6"/>
+          <rect x="14" y="8" width="5" height="12" rx="1.5" fill="#3b82f6"/>
+          <rect x="20" y="11" width="5" height="6" rx="1.5" fill="#3b82f6"/>
+        </svg>
+        <span>FitCoach</span>
+      </router-link>
+
+      <nav class="header__nav">
+        <router-link to="/coaches" class="nav-link">Coaches</router-link>
+
+        <template v-if="isLoggedIn">
+          <router-link to="/requests" class="nav-link">Requests</router-link>
+          <button class="nav-link nav-btn" @click="logout">Logout</button>
+        </template>
+
+        <router-link v-else to="/auth" class="nav-cta">Sign In</router-link>
+      </nav>
+    </div>
   </header>
 </template>
 
-<script>
-export default {
-  computed: {
-    isLoggedIn() {
-      return this.$store.getters.isAuthenticated;
-    },
-  },
-  methods: {
-    logout() {
-      this.$store.dispatch('logout');
-      this.$router.replace('/coaches');
-    },
-  },
-};
-</script>
-
 <style scoped>
-header {
-  width: 100%;
-  height: 5rem;
-  background-color: #3d008d;
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(18, 18, 20, 0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.header__container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.875rem 1.5rem;
   display: flex;
-  justify-content: center;
   align-items: center;
-}
-
-header a {
-  text-decoration: none;
-  color: #f391e3;
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  border: 1px solid transparent;
-}
-
-a:active,
-a:hover,
-a.router-link-active {
-  border: 1px solid #f391e3;
-}
-
-h1 {
-  margin: 0;
-}
-
-h1 a {
-  color: white;
-  margin: 0;
-}
-
-h1 a:hover,
-h1 a:active,
-h1 a.router-link-active {
-  border-color: transparent;
-}
-
-header nav {
-  width: 90%;
-  margin: auto;
-  display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 
-header ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.header__logo {
   display: flex;
-  justify-content: center;
   align-items: center;
+  gap: 0.625rem;
+  text-decoration: none;
 }
 
-li {
-  margin: 0 0.5rem;
+.header__logo span {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #fafafa;
+  letter-spacing: -0.02em;
+}
+
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nav-link {
+  padding: 0.5rem 0.875rem;
+  color: #a1a1aa;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  transition: all 150ms ease;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: #fafafa;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link.router-link-active {
+  color: #fafafa;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  text-decoration: none;
+  margin-left: 0.5rem;
+  transition: background 150ms ease;
+}
+
+.nav-cta:hover {
+  background: #2563eb;
 }
 </style>

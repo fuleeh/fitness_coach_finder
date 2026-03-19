@@ -1,214 +1,247 @@
+<script setup lang="ts">
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { useCoachesStore, type CoachFormData } from '@/stores/coaches'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const coachesStore = useCoachesStore()
+const authStore = useAuthStore()
+
+const firstName = reactive({ val: '', isValid: true })
+const lastName = reactive({ val: '', isValid: true })
+const description = reactive({ val: '', isValid: true })
+const rate = reactive({ val: null as number | null, isValid: true })
+const areas = reactive({ val: [] as string[], isValid: true })
+
+const formIsValid = ref(true)
+const isSubmitting = ref(false)
+
+const clearValidity = (input: string) => {
+  const field = { firstName, lastName, description, rate, areas }[input] as any
+  if (field) field.isValid = true
+}
+
+const validateForm = () => {
+  formIsValid.value = true
+
+  if (firstName.val === '') { firstName.isValid = false; formIsValid.value = false }
+  if (lastName.val === '') { lastName.isValid = false; formIsValid.value = false }
+  if (description.val === '') { description.isValid = false; formIsValid.value = false }
+  if (!rate.val || rate.val < 0) { rate.isValid = false; formIsValid.value = false }
+  if (areas.val.length === 0) { areas.isValid = false; formIsValid.value = false }
+}
+
+const submitForm = async () => {
+  validateForm()
+  if (!formIsValid.value) return
+
+  isSubmitting.value = true
+
+  const formData: CoachFormData = {
+    first: firstName.val,
+    last: lastName.val,
+    desc: description.val,
+    rate: rate.val!,
+    areas: areas.val,
+    userId: authStore.userId || undefined
+  }
+
+  coachesStore.registerCoach(formData)
+  await router.replace('/coaches')
+}
+</script>
+
 <template>
-  <form @submit.prevent="submitForm">
-    <div class="form-control" :class="{ invalid: !firstName.isValid }">
-      <label for="firstname">Firstname</label>
-      <input
-        type="text"
-        id="firstname"
-        v-model.trim="firstName.val"
-        @blur="clearValidity('firstName')"
-      />
-      <p v-if="!firstName.isValid">Firstname must not be empty.</p>
-    </div>
-    <div class="form-control" :class="{ invalid: !lastName.isValid }">
-      <label for="lastname">Lastname</label>
-      <input
-        type="text"
-        id="lastname"
-        v-model.trim="lastName.val"
-        @blur="clearValidity('lastName')"
-      />
-      <p v-if="!lastName.isValid">Lastname must not be empty.</p>
-    </div>
-    <div class="form-control" :class="{ invalid: !description.isValid }">
-      <label for="description">Description</label>
-      <textarea
-        id="description"
-        rows="5"
-        v-model.trim="description.val"
-        @blur="clearValidity('description')"
-      />
-      <p v-if="!description.isValid">Description must not be empty.</p>
-    </div>
-    <div class="form-control" :class="{ invalid: !rate.isValid }">
-      <label for="rate">Hourly Rate</label>
-      <textarea
-        type="number"
-        id="rate"
-        v-model.number="rate.val"
-        @blur="clearValidity('rate')"
-      />
-      <p v-if="!rate.isValid">Rate must be greater than 0.</p>
-    </div>
-    <div class="form-control" :class="{ invalid: !areas.isValid }">
-      <h3>Areas of Expertise</h3>
-      <div>
-        <input
-          type="checkbox"
-          id="powerlifting"
-          value="powerlifting"
-          v-model="areas.val"
-          @blur="clearValidity('areas')"
-        />
-        <label for="powerlifting">Powerlifting Coach</label>
+  <form class="form" @submit.prevent="submitForm">
+    <div class="form-row">
+      <div class="form-group" :class="{ invalid: !firstName.isValid }">
+        <label for="firstname">First Name</label>
+        <input id="firstname" v-model.trim="firstName.val" type="text" placeholder="John" @blur="clearValidity('firstName')" />
+        <p v-if="!firstName.isValid" class="error">Required</p>
       </div>
 
-      <div>
-        <input
-          type="checkbox"
-          id="bodybuilding"
-          value="bodybuilding"
-          v-model="areas.val"
-          @blur="clearValidity('areas')"
-        />
-        <label for="bodybuilding">Bodybuilding Coach</label>
+      <div class="form-group" :class="{ invalid: !lastName.isValid }">
+        <label for="lastname">Last Name</label>
+        <input id="lastname" v-model.trim="lastName.val" type="text" placeholder="Doe" @blur="clearValidity('lastName')" />
+        <p v-if="!lastName.isValid" class="error">Required</p>
       </div>
-
-      <div>
-        <input
-          type="checkbox"
-          id="fitness"
-          value="fitness"
-          v-model="areas.val"
-          @blur="clearValidity('areas')"
-        />
-        <label for="fitness">Fitness Coach</label>
-      </div>
-      <p v-if="!rate.isValid">At least one expertise must be selected.</p>
     </div>
-    <p v-if="!formIsValid">Please fix the above errors and submit again.</p>
-    <base-button>Register</base-button>
+
+    <div class="form-group" :class="{ invalid: !description.isValid }">
+      <label for="description">About You</label>
+      <textarea id="description" v-model.trim="description.val" rows="4" placeholder="Describe your coaching experience..." @blur="clearValidity('description')"></textarea>
+      <p v-if="!description.isValid" class="error">Required</p>
+    </div>
+
+    <div class="form-group" :class="{ invalid: !rate.isValid }">
+      <label for="rate">Hourly Rate ($)</label>
+      <input id="rate" v-model.number="rate.val" type="number" min="1" placeholder="50" @blur="clearValidity('rate')" />
+      <p v-if="!rate.isValid" class="error">Enter a valid rate</p>
+    </div>
+
+    <div class="form-group" :class="{ invalid: !areas.isValid }">
+      <label>Areas of Expertise</label>
+      <div class="checkbox-group">
+        <label class="checkbox-option">
+          <input v-model="areas.val" type="checkbox" value="powerlifting" />
+          <span>Powerlifting</span>
+        </label>
+        <label class="checkbox-option">
+          <input v-model="areas.val" type="checkbox" value="bodybuilding" />
+          <span>Bodybuilding</span>
+        </label>
+        <label class="checkbox-option">
+          <input v-model="areas.val" type="checkbox" value="fitness" />
+          <span>Fitness</span>
+        </label>
+        <label class="checkbox-option">
+          <input v-model="areas.val" type="checkbox" value="yoga" />
+          <span>Yoga</span>
+        </label>
+        <label class="checkbox-option">
+          <input v-model="areas.val" type="checkbox" value="strength" />
+          <span>Strength</span>
+        </label>
+        <label class="checkbox-option">
+          <input v-model="areas.val" type="checkbox" value="nutrition" />
+          <span>Nutrition</span>
+        </label>
+      </div>
+      <p v-if="!areas.isValid" class="error">Select at least one</p>
+    </div>
+
+    <p v-if="!formIsValid" class="form-error">Please fill in all required fields</p>
+
+    <button type="submit" class="submit-btn" :disabled="isSubmitting">
+      {{ isSubmitting ? 'Registering...' : 'Register as Coach' }}
+    </button>
   </form>
 </template>
 
-<script>
-export default {
-  emits: ['save-data'],
-  data() {
-    return {
-      firstName: {
-        val: '',
-        isValid: true,
-      },
-      lastName: {
-        val: '',
-        isValid: true,
-      },
-      description: {
-        val: '',
-        isValid: true,
-      },
-      rate: {
-        val: null,
-        isValid: true,
-      },
-      areas: {
-        val: [],
-        isValid: true,
-      },
-      formIsValid: true,
-    };
-  },
-  methods: {
-    clearValidity(input) {
-      this[input].isValid = true;
-    },
-    validateForm() {
-      this.formIsValid = true;
-      if (this.firstName.val === '') {
-        this.firstName.isValid = false;
-        this.formIsValid = false;
-      }
-      if (this.lastName.val === '') {
-        this.lastName.isValid = false;
-        this.formIsValid = false;
-      }
-      if (this.description.val === '') {
-        this.description.isValid = false;
-        this.formIsValid = false;
-      }
-      if (!this.rate.val || this.rate.val < 0) {
-        this.rate.isValid = false;
-        this.formIsValid = false;
-      }
-      if (this.areas.val.length === 0) {
-        this.areas.isValid = false;
-        this.formIsValid = false;
-      }
-    },
-    submitForm() {
-      this.validateForm();
-
-      if (!this.formIsValid) {
-        return;
-      }
-
-      const formData = {
-        first: this.firstName.val,
-        last: this.lastName.val,
-        desc: this.description.val,
-        rate: this.rate.val,
-        areas: this.areas.val,
-      };
-      this.$emit('save-data', formData);
-    },
-  },
-};
-</script>
-
 <style scoped>
-.form-control {
-  margin: 0.5rem 0;
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-label {
-  font-weight: bold;
-  display: block;
-  margin-bottom: 0.5rem;
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 }
 
-input[type='checkbox'] + label {
-  font-weight: normal;
-  display: inline;
-  margin: 0 0 0 0.5rem;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
-input,
-textarea {
-  display: block;
-  width: 100%;
-  border: 1px solid #ccc;
-  font: inherit;
+.form-group label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #a1a1aa;
 }
 
-input:focus,
-textarea:focus {
-  background-color: #f0e6fd;
+.form-group input,
+.form-group textarea {
+  background: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
+  color: #fafafa;
+  font-size: 0.875rem;
+  transition: border-color 150ms ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
   outline: none;
-  border-color: #3d008d;
+  border-color: #10b981;
 }
 
-input[type='checkbox'] {
-  display: inline;
-  width: auto;
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #71717a;
+}
+
+.form-group.invalid input,
+.form-group.invalid textarea {
+  border-color: #ef4444;
+}
+
+.error {
+  color: #ef4444;
+  font-size: 0.75rem;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  background: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.checkbox-option:has(input:checked) {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.checkbox-option input {
+  width: 16px;
+  height: 16px;
+  accent-color: #10b981;
+}
+
+.checkbox-option span {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #a1a1aa;
+}
+
+.checkbox-option:has(input:checked) span {
+  color: #10b981;
+}
+
+.form-error {
+  color: #ef4444;
+  font-size: 0.8125rem;
+  text-align: center;
+  padding: 0.625rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+}
+
+.submit-btn {
+  padding: 0.75rem 1.25rem;
+  background: #10b981;
+  color: #000;
+  font-weight: 500;
+  font-size: 0.875rem;
   border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 150ms ease;
 }
 
-input[type='checkbox']:focus {
-  outline: #3d008d solid 1px;
+.submit-btn:hover:not(:disabled) {
+  background: #059669;
 }
 
-h3 {
-  margin: 0.5rem 0;
-  font-size: 1rem;
-}
-
-.invalid label {
-  color: red;
-}
-
-.invalid input,
-.invalid textarea {
-  border: 1px solid red;
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

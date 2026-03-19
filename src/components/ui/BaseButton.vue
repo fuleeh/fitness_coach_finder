@@ -1,69 +1,108 @@
-<template>
-  <button v-if="!link" :class="mode"><slot></slot></button>
-  <router-link v-else :to="to" :class="mode"><slot></slot></router-link>
-</template>
+<script setup lang="ts">
+import { computed } from 'vue'
 
-<script>
-export default {
-  props: {
-    mode: {
-      type: String,
-      required: false,
-      default: null,
-    },
-    link: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    to: {
-      type: String,
-      required: false,
-      default: '/',
-    },
-  },
-};
+interface Props {
+  variant?: 'primary' | 'secondary' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+  to?: string
+  type?: 'button' | 'submit' | 'reset'
+  disabled?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'primary',
+  size: 'md',
+  to: '',
+  type: 'button',
+  disabled: false
+})
+
+const emit = defineEmits<{
+  click: [event: MouseEvent]
+}>()
+
+const isLink = computed(() => !!props.to)
+
+const handleClick = (event: MouseEvent) => {
+  if (!props.disabled) {
+    emit('click', event)
+  }
+}
 </script>
 
+<template>
+  <router-link v-if="isLink" :to="to" class="btn" :class="[`btn--${variant}`, `btn--${size}`]">
+    <slot />
+  </router-link>
+  <button v-else :type="type" :disabled="disabled" class="btn" :class="[`btn--${variant}`, `btn--${size}`]" @click="handleClick">
+    <slot />
+  </button>
+</template>
+
 <style scoped>
-button,
-a {
-  text-decoration: none;
-  padding: 0.75rem 1.5rem;
-  font: inherit;
-  background-color: #3a0061;
-  border: 1px solid #3a0061;
-  color: white;
-  cursor: pointer;
-  border-radius: 30px;
-  margin-right: 0.5rem;
-  display: inline-block;
-}
-
-a:hover,
-a:active,
-button:hover,
-button:active {
-  background-color: #270041;
-  border-color: #270041;
-}
-
-.flat {
-  background-color: transparent;
-  color: #3a0061;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
   border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-decoration: none;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+  background: #10b981;
+  color: #000;
 }
 
-.outline {
-  background-color: transparent;
-  border-color: #270041;
-  color: #270041;
+.btn--primary {
+  background: #10b981;
+  color: #000;
 }
 
-.flat:hover,
-.flat:active,
-.outline:hover,
-.outline:active {
-  background-color: #edd2ff;
+.btn--primary:hover {
+  background: #059669;
+}
+
+.btn--secondary {
+  background: #242428;
+  color: #fafafa;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn--secondary:hover {
+  background: #2a2a2e;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: #a1a1aa;
+}
+
+.btn--ghost:hover {
+  background: #242428;
+  color: #fafafa;
+}
+
+.btn--sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.btn--md {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn--lg {
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
